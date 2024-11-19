@@ -1,5 +1,5 @@
-@set UNITY_HOME=E:\work\unitysource2019_x3\build\WindowsEditor
-@set UNITY_HOME_LIB=E:/work/unitysource2019_x3/build/WindowsEditor/Data/MonoBleedingEdge/lib
+@set UNITY_HOME=D:\Unity3D\2022.3.12f1\Editor
+@set UNITY_HOME_LIB=D:\Unity3D\2022.3.12f1\Editor\Data\MonoBleedingEdge\lib
 
 @set GMCS="%UNITY_HOME%\Data\MonoBleedingEdge\bin\mcs.bat"
 @set CSC="%UNITY_HOME%\Data\Tools\Roslyn\csc"
