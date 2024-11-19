@@ -9,7 +9,6 @@ using IFix.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace IFix.Test
 {
@@ -20,11 +19,11 @@ namespace IFix.Test
         {
             int LOOPS = 10000000;
             var virtualMachine = SimpleVirtualMachineBuilder.CreateVirtualMachine(LOOPS);
-            Call call = default;
+
             for (int i = 0; i < 3; i++)
             {
                 var sw = Stopwatch.StartNew();
-                Call.BeginRef(ref call);
+                Call call = Call.Begin();
                 virtualMachine.Execute(1, ref call, 0);
                 Call.End(ref call);
                 sw.Stop();
@@ -38,78 +37,22 @@ namespace IFix.Test
         //    return a + b;
         //}
         //原生方法通过这种方式调用虚拟机方法
-        static unsafe void SafeCall()
+        static void SafeCall()
         {
-            IntPtr nativePointer = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof(Value)
-                * VirtualMachine.MAX_EVALUATION_STACK_SIZE);
-            Value* evaluationStackPointer = (Value*)nativePointer.ToPointer();
-            object[] managedStack = new object[VirtualMachine.MAX_EVALUATION_STACK_SIZE];
-
             int LOOPS = 10000000;
             var virtualMachine = SimpleVirtualMachineBuilder.CreateVirtualMachine(LOOPS);
 
             var sw = Stopwatch.StartNew();
-            Call call = default;
-            int ret = 0;
             for (int i = 0; i < LOOPS; i++)
             {
-                Call.BeginRef(ref call);
+                Call call = Call.Begin();
                 call.PushInt32(4);
                 call.PushInt32(6);
                 virtualMachine.Execute(0, ref call, 2);
-                ret = call.GetInt32();
+                Call.End(ref call);
+                call.GetInt32();
             }
-            Console.WriteLine($"SafeCall {ret}" + "  : " + ((int)sw.Elapsed.TotalMilliseconds) + "ms\r\n");
-        }
-
-
-        public struct  Vector3
-        {
-            
-        }
-        
-        public int __Gen_Wrap_1(object P0, Vector3 P1)
-        {
-            Call call = Call.Begin();
-            call.PushObject(P0);
-            call.PushValueUnmanaged<Vector3>(P1);
-            return call.GetInt32(0);
-        }
-
-        static unsafe void CallOrigin()
-        {
-            int LOOPS = 1000000;
-
-            var sw = Stopwatch.StartNew();
-            int ret = 0;
-            SimpleVirtualMachineBuilder sb = new SimpleVirtualMachineBuilder();
-            // for (int i = 0; i < LOOPS; i++)
-            // {
-            //     ret = sb.GetValue(10, 20);
-            // }
-            Console.WriteLine($"CallOrigin {ret}" + "  : " + ((int)sw.Elapsed.TotalMilliseconds) + "ms\r\n");
-        }
-
-        static unsafe void SafeCallExtern()
-        {
-            int LOOPS = 1;//1000000;
-            SimpleVirtualMachineBuilder sb = new SimpleVirtualMachineBuilder();
-            var virtualMachine = SimpleVirtualMachineBuilder.CreateVirtualMachine(LOOPS);
-
-            var sw = Stopwatch.StartNew();
-            int ret = 0;
-            Call call = default;
-            List<int> list = new List<int> { 12 };
-            for (int i = 0; i < LOOPS; i++)
-            {
-                Call.BeginRef(ref call);
-                call.PushObject(sb);
-                call.PushObject(list);
-                virtualMachine.Execute(2, ref call, 3);
-                ret = call.GetInt32();
-            }
-            sw.Stop();
-            Console.WriteLine($"SafeCallExtern ret:{ret} " + "  : " + (sw.Elapsed.TotalMilliseconds) + "ms\r\n");
+            Console.WriteLine("SafeCall " + "  : " + (LOOPS / (int)sw.Elapsed.TotalMilliseconds * 1000) + "\r\n");
         }
 
         //直接通过指针操作栈，调用add方法
@@ -120,13 +63,10 @@ namespace IFix.Test
                 * VirtualMachine.MAX_EVALUATION_STACK_SIZE);
             Value* evaluationStackPointer = (Value*)nativePointer.ToPointer();
             object[] managedStack = new object[VirtualMachine.MAX_EVALUATION_STACK_SIZE];
-            byte* stackValueHandler = (byte*)Marshal.AllocHGlobal(32 * VirtualMachine.MAX_EVALUATION_STACK_SIZE).ToPointer();
-            
+
             int LOOPS = 10000000;
             var virtualMachine = SimpleVirtualMachineBuilder.CreateVirtualMachine(LOOPS);
             var sw = Stopwatch.StartNew();
-
-            int ret = 0;
             for (int i = 0; i < LOOPS; i++)
             {
                 evaluationStackPointer->Value1 = 10;
@@ -134,20 +74,17 @@ namespace IFix.Test
 
                 (evaluationStackPointer + 1)->Value1 = 20;
                 (evaluationStackPointer + 1)->Type = IFix.Core.ValueType.Integer;
-                
+
                 virtualMachine.Execute(0, evaluationStackPointer, managedStack, evaluationStackPointer, 2);
-                ret = evaluationStackPointer->Value1;
             }
-            Console.WriteLine($"UnsafeCall {ret}" + "  : " + ((int)sw.Elapsed.TotalMilliseconds) + "ms\r\n");
+            Console.WriteLine("UnsafeCall " + "  : " + (LOOPS / (int)sw.Elapsed.TotalMilliseconds * 1000) + "\r\n");
 
             System.Runtime.InteropServices.Marshal.FreeHGlobal(nativePointer);
         }
 
         public static void Main(string[] args)
         {
-            CallOrigin();
-            SafeCallExtern();
-            //Base();
+            Base();
             SafeCall();
             UnsafeCall();
             Console.Read();

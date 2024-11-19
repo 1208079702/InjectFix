@@ -5,8 +5,6 @@
  * This file is subject to the terms and conditions defined in file 'LICENSE', which is part of this source code package.
  */
 
-using Unity.Collections.LowLevel.Unsafe;
-
 namespace IFix.Core
 {
     using System.Collections.Generic;
@@ -272,7 +270,7 @@ namespace IFix.Core
         }
 
         // #lizard forgives
-        unsafe static public VirtualMachine Load(Stream stream, bool checkNew = true, VirtualMachine.ExternInvokersHandle externInvokersHandle = null)
+        unsafe static public VirtualMachine Load(Stream stream, bool checkNew = true)
         {
             List<IntPtr> nativePointers = new List<IntPtr>();
 
@@ -490,7 +488,6 @@ namespace IFix.Core
                     }
                 })
                 {
-                    externInvokersHandle = externInvokersHandle,
                     ExternTypes = externTypes,
                     ExternMethods = externMethods,
                     ExceptionHandlers = exceptionHandlers.ToArray(),
@@ -499,7 +496,7 @@ namespace IFix.Core
                     NewFieldInfos = newFieldInfo,
                     AnonymousStoreyInfos = anonymousStoreyInfos,
                     StaticFieldTypes = staticFieldTypes,
-                    Cctors = cctors,
+                    Cctors = cctors
                 };
 
                 var wrappersManagerImplName = reader.ReadString();
@@ -573,9 +570,6 @@ namespace IFix.Core
                         }
                     }
                     Array arr = wrapperManager.InitWrapperArray(maxPos + 1) as Array;
-                    Type wmType = wrapperManager.GetType();
-                    object boxTrue = true;
-                    
                     for (int i = 0; i < fixCount; i++)
                     {
                         var wrapper = wrapperManager.CreateWrapper(methodIdArray[i]);
@@ -584,7 +578,6 @@ namespace IFix.Core
                             throw new Exception("create wrapper fail");
                         }
                         arr.SetValue(wrapper, posArray[i]);
-                        wmType.GetField($"isPatched_{posArray[i]}").SetValue(null, boxTrue);
                     }
                     removers[assembly] = () =>
                     {

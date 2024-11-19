@@ -44,7 +44,7 @@ namespace IFix.Test
         public void SimpleTest()
         {
             var virtualMachine = SimpleVirtualMachineBuilder.CreateVirtualMachine(1);
-            Call call = Call.BeginRef();
+            Call call = Call.Begin();
             call.PushInt32(4);
             call.PushInt32(6);
             virtualMachine.Execute(0, ref call, 2);
