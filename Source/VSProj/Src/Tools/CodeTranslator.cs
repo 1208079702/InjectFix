@@ -2764,7 +2764,8 @@ namespace IFix
                 m = j;
                 instructions.Add(Instruction.Create(OpCodes.Ret));
                 itfBridgeType.Methods.Add(targetMethod);
-        }
+				}
+		}
 
         private void EmitAsyncBuilderStartMethod(IEnumerable<TypeDefinition> allTypes)
         {
